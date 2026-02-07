@@ -1,11 +1,12 @@
 ---
 layout: default
-title: Vamshi Moturi
+title: EOB Clarity Kit
 ---
 
-# Vamshi Moturi
+# EOB Clarity Kit
 
-**Sr Technical Project Manager (Healthcare)**
+**Vamshi Moturi**  
+Sr Technical Project Manager (Healthcare)
 
 I build privacy-first, plain-English tools that reduce confusion in healthcare admin — starting with EOBs and medical bills.
 
@@ -23,30 +24,24 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 
 ## Workflow
 
-**Classify → Extract → Explain → Checklist → Verify**
+Classify → Extract → Explain → Checklist → Verify
+
+_Last updated: Feb 7, 2026 · Version: v1.0_
 
 ---
 
 ## Public artifacts (evidence)
 
 - **Demo (copy/paste workflow):** [Try the demo](demo/)
-- **Standard v1 (rubric):** [Read the Standard v1](docs/standard-v1/)
+- **Standard v1 (rubric):** [Read the Standard v1](standard/)
 - **Synthetic case library:** [Browse examples](examples/)
-- **Clinic:** [How submissions are reviewed](community/clinic/)
-- **Changelog (version history):** [See updates](CHANGELOG/)
-
-
-
+- **Clinic:** [How submissions are reviewed](clinic/)
+- **Changelog (version history):** [See updates](changelog/)
 
 ---
 
 ## Safety + privacy
 
-- This project does **not** provide medical advice.
-- Do **not** paste or upload personal data (names, IDs, addresses, claim/account numbers).
-- Use **redacted text snippets** only.
-- Synthetic examples are used to demonstrate the approach.
-
----
-
-_Last updated: Feb 7, 2026 · Version: v1.0_
+- This project is for **admin clarity only** (billing/EOB understanding).
+- **Do not paste PHI** (names, addresses, IDs, DOB, portal screenshots, QR codes).
+- If anything looks wrong, **verify with the provider/insurer** before paying.
