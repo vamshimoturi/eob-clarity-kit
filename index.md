@@ -11,8 +11,6 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 
 **EOB ≠ bill. No medical advice. Synthetic examples only.**
 
-[Try the Demo](demo/) · [Read the Standard v1](docs/standard-v1.html) · [Browse Examples](examples/) · [Clinic](community/clinic.html) · [Changelog](CHANGELOG.html)
-
 ---
 
 ## What this does
@@ -31,11 +29,12 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 
 ## Public artifacts (evidence)
 
-- **Demo (copy/paste workflow):** Try the demo
-- **Standard v1 (rubric):** definitions + boundaries (EOB ≠ bill, no medical advice)
-- **Synthetic case library:** browse examples
-- **Clinic:** review process for submissions (published as synthetic cases)
-- **Changelog:** version history
+- **Demo (copy/paste workflow):** [Try the demo](demo/)
+- **Standard v1 (rubric):** [Read the Standard v1](docs/standard-v1/)
+- **Synthetic case library:** [Browse examples](examples/)
+- **Clinic:** [How submissions are reviewed](community/clinic/)
+- **Changelog (version history):** [See updates](CHANGELOG/)
+
 
 
 
