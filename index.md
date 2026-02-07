@@ -26,8 +26,7 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 ---
 
 ## Public artifacts (evidence)
-- **Demo (copy/paste workflow):**
-[Try the demo](demo/)
+- **Demo (copy/paste workflow):** [Try the demo](demo/)
 [Read the Standard v1](docs/standard-v1.html) · 
 [Browse Examples](examples/) · 
 [Clinic](community/clinic.html) · 
