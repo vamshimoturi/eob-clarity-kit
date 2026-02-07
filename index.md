@@ -26,10 +26,12 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 ---
 
 ## Public artifacts (evidence)
-- **Standard v1 (rubric):** [Read here](docs/standard-v1.html)
-- **Synthetic case library:** [Browse examples](examples/)
-- **Clinic (review process):** [How submissions are reviewed](community/clinic.html)
-- **Changelog (version history):** [See updates](CHANGELOG.html)
+[Try the Demo](demo/) · 
+[Read the Standard v1](docs/standard-v1.html) · 
+[Browse Examples](examples/) · 
+[Clinic](community/clinic.html) · 
+[Changelog](CHANGELOG.html)
+
 
 ---
 
