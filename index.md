@@ -31,11 +31,13 @@ I build privacy-first, plain-English tools that reduce confusion in healthcare a
 
 ## Public artifacts (evidence)
 
-- **Demo (copy/paste workflow):** [Try the demo](demo/)
-- **Standard v1 (rubric):** [Read here](docs/standard-v1.html)
-- **Synthetic case library:** [Browse examples](examples/)
-- **Clinic (review process):** [How submissions are reviewed](community/clinic.html)
-- **Changelog (version history):** [See updates](CHANGELOG.html)
+- **Demo (copy/paste workflow):** Try the demo
+- **Standard v1 (rubric):** definitions + boundaries (EOB ≠ bill, no medical advice)
+- **Synthetic case library:** browse examples
+- **Clinic:** review process for submissions (published as synthetic cases)
+- **Changelog:** version history
+
+
 
 ---
 
