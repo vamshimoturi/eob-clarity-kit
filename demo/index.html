@@ -193,3 +193,337 @@
       display:inline-block;
       padding:4px 8px;
       border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color:var(--muted);
+      font-size:12px;
+      margin-right:6px;
+    }
+    .tag.ok{ border-color: rgba(52,211,153,0.35); color:#bff7e3; }
+    .tag.warn{ border-color: rgba(251,191,36,0.40); color:#ffe6a3; }
+    .tag.danger{ border-color: rgba(248,113,113,0.40); color:#ffd0d0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">EOB Clarity Kit</div>
+      <div class="nav">
+        <a href="../docs/standard-v1.html">Standard</a> ·
+        <a href="../examples/">Examples</a> ·
+        <a href="../community/clinic.html">Clinic</a> ·
+        <a href="../CHANGELOG.html">Changelog</a> ·
+        <a href="https://github.com/vamshimoturi/eob-clarity-kit">GitHub</a>
+      </div>
+    </div>
+
+    <div class="hero">
+      <h1>On-Page Demo — Paste Redacted Text</h1>
+      <p>
+        Paste a <strong>redacted</strong> snippet from an EOB / bill / statement / collections notice.
+        This demo runs <strong>entirely in your browser</strong> (no uploads, no tracking, no server).
+      </p>
+      <div class="pillrow">
+        <div class="pill"><strong>Privacy-first:</strong> no PHI</div>
+        <div class="pill"><strong>No medical advice</strong></div>
+        <div class="pill"><strong>Output:</strong> summary + numbers + checklist + scripts</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>1) Paste your redacted text</h2>
+        <p class="hint">
+          Remove names, addresses, phone/email, member/claim/account IDs, full DOB, portal screenshots, barcodes/QR codes.
+          Use placeholders like <code>[NAME]</code>, <code>[ID]</code>, <code>[CONTACT]</code>.
+        </p>
+
+        <textarea id="input" placeholder="Paste redacted text here (example):
+Explanation of Benefits. Total charge $1,200. Allowed $520. Plan paid $400. Patient responsibility $120.
+Provider: ABC Imaging. Date of service: 01/10/2026.
+"></textarea>
+
+        <div class="actions">
+          <button id="analyze">Analyze</button>
+          <button class="secondary" id="clear">Clear</button>
+          <button class="secondary" id="loadExample">Load synthetic example</button>
+        </div>
+
+        <div class="notice">
+          <strong>Safety note:</strong> This tool is for admin clarity only. If anything looks wrong, verify with the provider/insurer.
+          Don’t pay based only on this output.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2) Output</h2>
+        <div id="badges" style="margin: 0 0 10px;"></div>
+        <div id="output" class="out">Click “Analyze” to generate the summary.</div>
+        <div class="small">
+          <span class="tag ok">Runs locally</span>
+          <span class="tag warn">Heuristic (not perfect)</span>
+          <span class="tag danger">Use redacted text only</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+
+  const input = $("input");
+  const output = $("output");
+  const badges = $("badges");
+
+  const SYN = `Explanation of Benefits. Total charge $1,200. Allowed $520. Plan paid $400. Patient responsibility $120.
+Provider: ABC Imaging. Date of service: 01/10/2026.
+Notes: This is not a bill.`;
+
+  function norm(s){ return (s || "").toLowerCase(); }
+
+  function classify(text){
+    const t = norm(text);
+
+    const hasEob = /explanation of benefits|\beob\b|allowed amount|plan paid|patient responsibility/.test(t);
+    const hasCollections = /collections|debt collector|collection agency|credit reporting/.test(t);
+    const hasBill = /amount due|due date|statement|invoice|pay to|balance due/.test(t);
+
+    if (hasCollections) return "Collections notice";
+    if (hasEob && !hasBill) return "EOB (not a bill)";
+    if (hasBill && !hasEob) return "Provider bill / statement";
+    if (hasBill && hasEob) return "Mixed (EOB + bill info present)";
+    return "Unknown";
+  }
+
+  function money(n){
+    if (n == null || Number.isNaN(n)) return null;
+    return "$" + n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+
+  function parseAmountNear(text, keywords){
+    // Find first money value within ~60 chars after a keyword
+    const reMoney = /(\$?\s*\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/g;
+    const t = text.replace(/\r/g,"");
+    for (const kw of keywords){
+      const idx = norm(t).indexOf(kw);
+      if (idx >= 0){
+        const slice = t.substring(idx, Math.min(t.length, idx + 120));
+        const m = slice.match(reMoney);
+        if (m && m.length){
+          // pick first parseable money-like
+          for (const raw of m){
+            const val = Number(raw.replace(/[^0-9.]/g,""));
+            if (!Number.isNaN(val) && val > 0) return val;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function detectDueDate(text){
+    // very light date detection
+    const m = text.match(/\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](\d{2,4})\b/);
+    if (m) return m[0];
+    const m2 = text.match(/\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2},\s+\d{4}\b/i);
+    if (m2) return m2[0];
+    return null;
+  }
+
+  function hasRedactionRisk(text){
+    // crude checks for possible PHI
+    const t = text;
+    const hasEmail = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(t);
+    const hasPhone = /\b(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/.test(t);
+    const hasAddressish = /\b\d{1,5}\s+\w+(\s+\w+){0,3}\s+(st|street|ave|avenue|rd|road|blvd|drive|dr|ln|lane|ct|court)\b/i.test(t);
+    const hasIdish = /\b(member id|claim id|account number|subscriber id|policy number)\b/i.test(t);
+    return hasEmail || hasPhone || hasAddressish || hasIdish;
+  }
+
+  function build(text){
+    const docType = classify(text);
+
+    // Extract key amounts
+    const charge = parseAmountNear(text, ["total charge", "total charges", "charge", "billed", "amount billed"]);
+    const allowed = parseAmountNear(text, ["allowed", "allowed amount"]);
+    const planPaid = parseAmountNear(text, ["plan paid", "paid by plan", "insurance paid", "insurer paid"]);
+    const patientResp = parseAmountNear(text, ["patient responsibility", "patient resp", "you may owe", "your responsibility", "member responsibility"]);
+    const amountDue = parseAmountNear(text, ["amount due", "balance due", "total due", "due now"]);
+    const dueDate = detectDueDate(text);
+
+    // Red flags
+    const flags = [];
+    if (/duplicate|already paid|paid twice/.test(norm(text))) flags.push("Possible duplicate/duplicate payment mentioned.");
+    if (/insurance pending|pending insurance/.test(norm(text))) flags.push("Insurance pending — final balance may change.");
+    if ((docType.includes("bill") || docType.includes("statement")) && !dueDate) flags.push("Due date not shown — verify before paying.");
+    if (docType.includes("Collections") && !/date of service|dos/i.test(text)) flags.push("Collections notice missing date of service — request validation details.");
+    if (patientResp != null && allowed != null && patientResp > allowed) flags.push("Patient responsibility looks higher than allowed amount — verify line items.");
+    if (amountDue != null && patientResp != null && amountDue > patientResp && docType.includes("EOB")) flags.push("Bill amount higher than EOB patient responsibility — verify adjustments and additional claims.");
+
+    // Checklist + scripts
+    let checklist = [];
+    let questions = [];
+
+    if (docType.includes("EOB")){
+      checklist = [
+        "Confirm this is an EOB (not a bill).",
+        "Wait for the provider bill, then match it to patient responsibility.",
+        "If the bill doesn’t match, request an itemized bill.",
+        "Call insurer/provider to confirm deductible/coinsurance/copay allocations."
+      ];
+      questions = [
+        "Is the patient responsibility deductible, coinsurance, or copay?",
+        "Is any part denied or pending? Is another EOB still coming?",
+        "Can you explain adjustments/contracted rates for this claim?"
+      ];
+    } else if (docType.includes("bill")){
+      checklist = [
+        "Confirm payee and what the bill is for (service/date).",
+        "Check if insurance is pending; if yes, ask whether to wait for EOB.",
+        "Request an itemized bill if not provided.",
+        "Verify due date and whether payment plans exist."
+      ];
+      questions = [
+        "Is this a final bill or a preliminary statement while insurance is pending?",
+        "Can you provide an itemized bill (line items, CPT codes, payments/adjustments)?",
+        "What happens if insurance processes after I pay — will you refund/adjust?"
+      ];
+    } else if (docType.includes("Collections")){
+      checklist = [
+        "Request written validation (date of service, itemization, payments applied).",
+        "Verify it matches your records and insurer EOBs.",
+        "Do not pay until verified and you know the correct payee.",
+        "Ask about disputes and proof of authority to collect."
+      ];
+      questions = [
+        "Please provide debt validation: date of service, itemized charges, original creditor, and proof of assignment.",
+        "What is the dispute process and timeline?",
+        "Will you pause reporting while validation/dispute is in progress?"
+      ];
+    } else {
+      checklist = [
+        "Identify whether this is EOB vs bill vs collections.",
+        "Locate amount due, due date, and payee.",
+        "Request itemization and insurer processing status.",
+        "Verify all numbers before paying."
+      ];
+      questions = [
+        "Is this an EOB, a bill, or a statement? Who is the payee?",
+        "Can you provide itemized line items and insurer processing details?"
+      ];
+    }
+
+    // Build plain-English summary
+    const summary = [];
+    if (docType.includes("EOB")){
+      summary.push("This looks like an **EOB** — an EOB is **not a bill**.");
+      if (charge!=null) summary.push(`Provider billed about ${money(charge)}.`);
+      if (allowed!=null) summary.push(`Plan allowed about ${money(allowed)} (contracted/approved amount).`);
+      if (planPaid!=null) summary.push(`Plan paid about ${money(planPaid)}.`);
+      if (patientResp!=null) summary.push(`Patient responsibility shown is about ${money(patientResp)} (may be billed later).`);
+    } else if (docType.includes("bill")){
+      summary.push("This looks like a **provider bill/statement**.");
+      if (amountDue!=null) summary.push(`Amount due is about ${money(amountDue)}.`);
+      if (dueDate) summary.push(`Due date appears to be **${dueDate}**.`);
+      if (/insurance pending|pending insurance/.test(norm(text))) summary.push("It mentions insurance is pending, so the final amount may change.");
+    } else if (docType.includes("Collections")){
+      summary.push("This looks like a **collections notice**.");
+      if (amountDue!=null) summary.push(`Claimed balance is about ${money(amountDue)}.`);
+      if (!/date of service|dos/i.test(text)) summary.push("Key details (like date of service) appear missing — request validation.");
+    } else {
+      summary.push("Document type is unclear from the snippet — treat as **unknown** until verified.");
+    }
+
+    const keyNumbers = [
+      `Document type: ${docType}`,
+      `Total/Charge: ${charge!=null ? money(charge) : "not shown"}`,
+      `Allowed: ${allowed!=null ? money(allowed) : "not shown"}`,
+      `Plan paid: ${planPaid!=null ? money(planPaid) : "not shown"}`,
+      `Patient responsibility: ${patientResp!=null ? money(patientResp) : "not shown"}`,
+      `Amount due: ${amountDue!=null ? money(amountDue) : "not shown"}`,
+      `Due date: ${dueDate ? dueDate : "not shown"}`
+    ];
+
+    // Confidence
+    let confidence = "medium";
+    if (docType === "Unknown") confidence = "low";
+    if (docType.includes("Mixed")) confidence = "medium";
+    if (docType.includes("EOB") || docType.includes("bill") || docType.includes("Collections")) confidence = "high";
+
+    return {
+      docType,
+      summary,
+      keyNumbers,
+      checklist,
+      questions,
+      flags,
+      confidence
+    };
+  }
+
+  function render(res, risk){
+    const tags = [];
+    tags.push(`<span class="tag ok">Browser-only</span>`);
+    tags.push(`<span class="tag warn">No uploads</span>`);
+    if (risk) tags.push(`<span class="tag danger">Possible PHI detected</span>`);
+    badges.innerHTML = tags.join(" ");
+
+    const lines = [];
+    lines.push(`1) What this document is`);
+    lines.push(`- ${res.docType}`);
+    lines.push(``);
+    lines.push(`2) Plain-English summary`);
+    res.summary.forEach(s => lines.push(`- ${s}`));
+    lines.push(``);
+    lines.push(`3) Key numbers`);
+    res.keyNumbers.forEach(k => lines.push(`- ${k}`));
+    lines.push(``);
+    lines.push(`4) What to do next (checklist)`);
+    res.checklist.forEach(c => lines.push(`- [ ] ${c}`));
+    lines.push(``);
+    lines.push(`5) Questions to ask (script-ready)`);
+    res.questions.forEach(q => lines.push(`- "${q}"`));
+    lines.push(``);
+    lines.push(`6) Red flags / missing info`);
+    if (res.flags.length === 0) lines.push(`- None obvious from the snippet. Still verify with bill/EOB/itemization.`);
+    else res.flags.forEach(f => lines.push(`- ${f}`));
+    lines.push(``);
+    lines.push(`7) Confidence + what to verify`);
+    lines.push(`- Confidence: ${res.confidence}`);
+    lines.push(`- Verify: payee, due date, itemization, insurer status, and that numbers match the final bill/EOB.`);
+    if (risk){
+      lines.push(``);
+      lines.push(`⚠️ Possible identifying info detected. Please redact names/IDs/phone/email/address before using this tool.`);
+    }
+
+    output.textContent = lines.join("\n");
+  }
+
+  $("analyze").addEventListener("click", () => {
+    const text = input.value || "";
+    if (!text.trim()){
+      output.textContent = "Paste redacted text first, then click Analyze.";
+      badges.innerHTML = "";
+      return;
+    }
+    const risk = hasRedactionRisk(text);
+    const res = build(text);
+    render(res, risk);
+  });
+
+  $("clear").addEventListener("click", () => {
+    input.value = "";
+    output.textContent = "Click “Analyze” to generate the summary.";
+    badges.innerHTML = "";
+  });
+
+  $("loadExample").addEventListener("click", () => {
+    input.value = SYN;
+    output.textContent = "Loaded a synthetic example. Click “Analyze”.";
+    badges.innerHTML = "";
+  });
+})();
+</script>
+</body>
+</html>
