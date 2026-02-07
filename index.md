@@ -1,14 +1,42 @@
 ---
 layout: default
-title: Examples
+title: Vamshi Moturi
 ---
 
-# Examples (Synthetic)
+# Vamshi Moturi
+**Sr Technical Project Manager (Healthcare)**
 
-These are synthetic examples (no real patient data).
+I build privacy-first, plain-English tools that reduce confusion in healthcare admin — starting with EOBs and medical bills.
 
-- [Example 01 — EOB: patient responsibility explained](./ex-01.html)
-- [Example 02 — Provider bill: amount due + due date](./ex-02.html)
-- [Example 03 — EOB mismatch math: red flags](./ex-03.html)
-- [Example 04 — Collections notice: verify-first checklist](./ex-04.html)
-- [Example 05 — Duplicate charge: what to ask](./ex-05.html)
+**EOB ≠ bill. No medical advice. Synthetic examples only.**
+
+[Read the Standard v1](docs/standard-v1.html) · [Browse Examples](examples/) · [Clinic](community/clinic.html) · [Changelog](CHANGELOG.html)
+
+---
+
+## What this does
+**Explain** — Plain-English summary + key numbers  
+**Act** — Next steps checklist + call scripts  
+**Spot errors** — Red flags: mismatched math, unclear payee, missing due date, duplicates
+
+---
+
+## Workflow
+**Classify → Extract → Explain → Checklist → Verify**
+
+---
+
+## Public artifacts (evidence)
+- **Standard v1 (rubric):** [Read here](docs/standard-v1.html)
+- **Synthetic case library:** [Browse examples](examples/)
+- **Clinic (review process):** [How submissions are reviewed](community/clinic.html)
+- **Changelog (version history):** [See updates](CHANGELOG.html)
+
+---
+
+## Safety + privacy
+- **Admin clarity only.** This project does **not** provide medical advice.
+- **Synthetic examples only.** Never share personal identifiers.
+- **Verification-first.** Use this to confirm and ask questions before paying.
+
+_Last updated: Feb 7, 2026 · Version: v1.0_
