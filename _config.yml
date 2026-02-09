@@ -1,3 +1,7 @@
-theme: jekyll-theme-minimal
-title: EOB Clarity Kit
-description: Standard · Examples · Clinic · Writing
+url: "https://vamshimoturi.github.io"
+baseurl: "/eob-clarity-kit"
+
+title: "EOB Clarity Kit"
+description: "Privacy-first, plain-English clarity for EOBs and medical bills."
+
+markdown: kramdown
